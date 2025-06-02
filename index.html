@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Image to Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
+    input[type="file"] { margin-top: 1rem; }
+    #status { margin-top: 1rem; color: green; }
+  </style>
+</head>
+<body>
+
+  <h2>Upload Image to Supabase Storage</h2>
+
+  <input type="file" id="imageInput" accept="image/*" />
+  <button onclick="uploadImage()">Upload</button>
+
+  <p id="status"></p>
+
+  <script>
+    // Replace these with your project details
+    const SUPABASE_URL = 'https://zzgzuhycxcpexsjvbovx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6Z3p1aHljeGNwZXhzanZib3Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NzQxMTYsImV4cCI6MjA2NDQ1MDExNn0.6JV5PQSOYmYOPerqw3TwfteJ-lpKbYzR8_hS5FuZKqU';
+    const BUCKET_NAME = 'images';
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function uploadImage() {
+      const fileInput = document.getElementById('imageInput');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Please select a file to upload.');
+        return;
+      }
+
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(fileName, file);
+
+      const status = document.getElementById('status');
+
+      if (error) {
+        status.textContent = 'Upload failed: ' + error.message;
+        status.style.color = 'red';
+      } else {
+        const publicUrl = supabase.storage
+          .from(BUCKET_NAME)
+          .getPublicUrl(fileName).data.publicUrl;
+
+        status.innerHTML = `✅ Uploaded!<br><a href="${publicUrl}" target="_blank">View Image</a>`;
+        status.style.color = 'green';
+      }
+    }
+  </script>
+
+</body>
+</html>
